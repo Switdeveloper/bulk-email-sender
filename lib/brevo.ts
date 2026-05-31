@@ -1,5 +1,4 @@
-// lib/brevo.ts — Send emails via Brevo SMTP
-import nodemailer from 'nodemailer'
+// lib/brevo.ts — Send emails via Brevo Transactional API (more reliable than SMTP)
 import type { Settings } from './db'
 
 export interface SendResult {
@@ -17,36 +16,34 @@ export async function sendBrevoEmail(
   },
   settings: Settings
 ): Promise<SendResult> {
-  // Use Brevo SMTP
-  const transporter = nodemailer.createTransport({
-    host: settings.brevoSmtpHost || 'smtp-relay.brevo.com',
-    port: settings.brevoSmtpPort || 587,
-    secure: false,
-    auth: {
-      user: settings.brevoSmtpUser || settings.senderEmail,
-      pass: settings.brevoSmtpPass || settings.brevoApiKey,
-    },
-  })
-
-  // Send to each recipient individually
-  const results: SendResult = { success: false }
+  const apiKey = settings.brevoApiKey
 
   try {
-    // For bulk, send to all at once (BCC style for privacy)
-    const info = await transporter.sendMail({
-      from: `"${opts.from.name}" <${opts.from.email}>`,
-      to: opts.to.map(r => `"${r.name || ''}" <${r.email}>`).join(', '),
-      subject: opts.subject,
-      html: opts.htmlContent,
+    // Use Brevo Transactional API v3
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'api-key': apiKey,
+      },
+      body: JSON.stringify({
+        sender: { email: opts.from.email, name: opts.from.name },
+        to: opts.to.map(r => ({ email: r.email, name: r.name || undefined })),
+        subject: opts.subject,
+        htmlContent: opts.htmlContent,
+      }),
     })
 
-    results.success = true
-    results.messageId = info.messageId
-    return results
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      const msg = errorData?.message || `HTTP ${response.status}`
+      return { success: false, error: msg }
+    }
+
+    const data = await response.json()
+    return { success: true, messageId: data.messageId }
   } catch (err: any) {
-    results.success = false
-    results.error = err.message
-    return results
+    return { success: false, error: err.message }
   }
 }
 
