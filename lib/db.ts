@@ -40,13 +40,19 @@ export interface Settings {
 
 // — Settings helpers —
 export function getSettings(): Settings {
+  const envKey = process.env.BREVO_API_KEY || ''
   try {
     if (fs.existsSync(SETTINGS_FILE)) {
-      return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8'))
+      const stored = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8'))
+      // Env var takes priority (real key not the masked placeholder)
+      if (envKey && stored.brevoApiKey?.startsWith('•')) {
+        stored.brevoApiKey = envKey
+      }
+      return stored
     }
   } catch {}
   return {
-    brevoApiKey: '',
+    brevoApiKey: envKey || '',
     brevoSmtpHost: 'smtp-relay.brevo.com',
     brevoSmtpPort: 587,
     brevoSmtpUser: '',
