@@ -5,6 +5,7 @@ import Link from 'next/link'
 interface Recipient { email: string; name: string }
 interface SendResult { email: string; name: string; success: boolean; error?: string }
 interface SendResponse { sent: number; failed: number; results: SendResult[] }
+interface Template { id: string; name: string; subject: string; body: string }
 
 export default function Compose() {
   const [recipientInput, setRecipientInput] = useState('')
@@ -21,6 +22,25 @@ Best regards`)
   const [result, setResult] = useState<SendResponse | null>(null)
   const [error, setError] = useState('')
   const [parseMode, setParseMode] = useState<'bulk' | 'single'>('bulk')
+  const [templates, setTemplates] = useState<Template[]>([])
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('')
+  const [randomMode, setRandomMode] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/templates')
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data)) setTemplates(data) })
+      .catch(() => {})
+  }, [])
+
+  const loadTemplate = (id: string) => {
+    const t = templates.find(t => t.id === id)
+    if (t) {
+      setSubject(t.subject)
+      setBody(t.body)
+      setSelectedTemplateId(id)
+    }
+  }
 
   const handleAddRecipients = () => {
     const lines = recipientInput.split('\n').filter(Boolean)
@@ -28,7 +48,6 @@ Best regards`)
     for (const line of lines) {
       const trimmed = line.trim()
       if (!trimmed) continue
-      // Format: "Name <email>" or just "email"
       const match = trimmed.match(/^(.+?)\s*<(.+?)>$/)
       if (match) {
         newRecipients.push({ name: match[1].trim(), email: match[2].trim().toLowerCase() })
@@ -61,7 +80,13 @@ Best regards`)
       const res = await fetch('/api/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ recipients, subject, body }),
+        body: JSON.stringify({
+          recipients,
+          subject,
+          body,
+          randomMode,
+          templateIds: templates.map(t => t.id),
+        }),
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error || 'Send failed'); setSending(false); return }
@@ -87,6 +112,7 @@ Best regards`)
           <Link href="/compose" className="active">✏️ COMPOSE</Link>
           <Link href="/history">📋 HISTORY</Link>
           <Link href="/settings">⚙️ SETTINGS</Link>
+          <Link href="/templates">📝 TEMPLATES</Link>
         </div>
         <div className="online-indicator">
           <span className="radar-dot" />
@@ -139,6 +165,50 @@ Best regards`)
 
               <div className="section-divider" />
 
+              {/* Template Selection */}
+              {templates.length > 0 && (
+                <>
+                  <div className="form-group">
+                    <label>MESSAGE SOURCE</label>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                      <button
+                        className={`btn ${!randomMode ? 'btn-primary' : 'btn-outline'}`}
+                        style={{ fontSize: '11px', padding: '6px 12px' }}
+                        onClick={() => { setRandomMode(false); loadTemplate(selectedTemplateId) }}
+                      >
+                        📝 Custom / Selected
+                      </button>
+                      <button
+                        className={`btn ${randomMode ? 'btn-primary' : 'btn-outline'}`}
+                        style={{ fontSize: '11px', padding: '6px 12px' }}
+                        onClick={() => setRandomMode(true)}
+                      >
+                        🎲 RANDOM (rotate templates)
+                      </button>
+                    </div>
+                    {!randomMode && (
+                      <select
+                        className="form-control"
+                        style={{ fontSize: '12px' }}
+                        value={selectedTemplateId}
+                        onChange={e => loadTemplate(e.target.value)}
+                      >
+                        <option value="">— Type manually or pick a template —</option>
+                        {templates.map(t => (
+                          <option key={t.id} value={t.id}>{t.name}: {t.subject}</option>
+                        ))}
+                      </select>
+                    )}
+                    {randomMode && (
+                      <div style={{ padding: '10px 12px', background: 'var(--navy-mid)', borderRadius: '6px', fontSize: '12px', color: 'var(--radar-green)' }}>
+                        🎲 Each recipient will receive a randomly picked template from your {templates.length} saved template{templates.length !== 1 ? 's' : ''}
+                      </div>
+                    )}
+                  </div>
+                  <div className="section-divider" />
+                </>
+              )}
+
               <div className="form-group">
                 <label>SUBJECT</label>
                 <input className="form-control" type="text" value={subject} onChange={e => setSubject(e.target.value)} placeholder="Email subject..." />
@@ -155,7 +225,11 @@ Best regards`)
                 onClick={handleSend}
                 disabled={sending || recipients.length === 0}
               >
-                {sending ? <><span className="spinner" /> TRANSMITTING...</> : `⚡ SEND TO ${recipients.length} RECIPIENT${recipients.length !== 1 ? 'S' : ''}`}
+                {sending
+                  ? <><span className="spinner" /> TRANSMITTING...</>
+                  : randomMode
+                    ? `🎲 SEND TO ${recipients.length} — RANDOM TEMPLATES`
+                    : `⚡ SEND TO ${recipients.length} RECIPIENT${recipients.length !== 1 ? 'S' : ''}`}
               </button>
             </div>
           </div>
@@ -172,6 +246,11 @@ Best regards`)
                   </div>
                   <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: '4px' }}>SUBJECT:</div>
                   <div className="preview-subject">{subject || '<No subject>'}</div>
+                  {randomMode && (
+                    <div style={{ marginTop: '8px', fontSize: '11px', color: 'var(--radar-green)' }}>
+                      🎲 Random mode active — each recipient sees a different template
+                    </div>
+                  )}
                 </div>
                 <div className="preview-body">
                   {body.split('\n').filter(Boolean).map((line, i) => <p key={i}>{line}</p>)}
