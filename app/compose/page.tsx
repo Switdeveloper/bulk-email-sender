@@ -6,6 +6,7 @@ interface Recipient { email: string; name: string }
 interface SendResult { email: string; name: string; success: boolean; error?: string }
 interface SendResponse { sent: number; failed: number; results: SendResult[] }
 interface Template { id: string; name: string; subject: string; body: string }
+interface ContactList { id: string; name: string; contacts: Array<{ email: string; name: string; sent: boolean }>; stats?: { total: number; sent: number; unsent: number } }
 
 export default function Compose() {
   const [recipientInput, setRecipientInput] = useState('')
@@ -25,11 +26,21 @@ Best regards`)
   const [templates, setTemplates] = useState<Template[]>([])
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('')
   const [randomMode, setRandomMode] = useState(false)
+  // List picker
+  const [lists, setLists] = useState<ContactList[]>([])
+  const [selectedListId, setSelectedListId] = useState('')
+  const [limitCount, setLimitCount] = useState('')
+  const [loadingFromList, setLoadingFromList] = useState(false)
+  const [listError, setListError] = useState('')
 
   useEffect(() => {
     fetch('/api/templates')
       .then(r => r.json())
       .then(data => { if (Array.isArray(data)) setTemplates(data) })
+      .catch(() => {})
+    fetch('/api/contacts')
+      .then(r => r.json())
+      .then(data => { if (Array.isArray(data)) setLists(data) })
       .catch(() => {})
   }, [])
 
@@ -56,15 +67,43 @@ Best regards`)
       }
     }
     setRecipients(prev => {
-      const existing = new Set(prev.map(r => r.email))
-      const unique = newRecipients.filter(r => !existing.has(r.email))
+      const existing = new Set(prev.map(r => r.email.toLowerCase()))
+      const unique = newRecipients.filter(r => !existing.has(r.email.toLowerCase()))
       return [...prev, ...unique]
     })
     setRecipientInput('')
   }
 
   const removeRecipient = (email: string) => {
-    setRecipients(prev => prev.filter(r => r.email !== email))
+    setRecipients(prev => prev.filter(r => r.email.toLowerCase() !== email.toLowerCase()))
+  }
+
+  const handleLoadFromList = async () => {
+    if (!selectedListId) { setListError('Select a list first'); return }
+    setListError('')
+    setLoadingFromList(true)
+    try {
+      const url = `/api/contacts/${selectedListId}?unsent=1${limitCount ? `&limit=${parseInt(limitCount)}` : ''}`
+      const res = await fetch(url)
+      const data = await res.json()
+      if (!res.ok) { setListError(data.error || 'Failed to load'); setLoadingFromList(false); return }
+      const contacts = data.contacts || []
+      if (contacts.length === 0) {
+        setListError('No unsent contacts found in this list. All may have been already emailed, or the list is empty.')
+        setLoadingFromList(false)
+        return
+      }
+      const formatted = contacts.map((c: any) => ({ email: c.email, name: c.name || '' }))
+      setRecipients(prev => {
+        const existing = new Set(prev.map(r => r.email.toLowerCase()))
+        const unique = formatted.filter((r: Recipient) => !existing.has(r.email.toLowerCase()))
+        return [...prev, ...unique]
+      })
+      setListError('')
+    } catch (e: any) {
+      setListError(e.message)
+    }
+    setLoadingFromList(false)
   }
 
   const handleSend = async () => {
@@ -86,6 +125,7 @@ Best regards`)
           body,
           randomMode,
           templateIds: templates.map(t => t.id),
+          listId: selectedListId,       // pass list ID so API can mark sent
         }),
       })
       const data = await res.json()
@@ -113,6 +153,7 @@ Best regards`)
           <Link href="/history">📋 HISTORY</Link>
           <Link href="/settings">⚙️ SETTINGS</Link>
           <Link href="/templates">📝 TEMPLATES</Link>
+          <Link href="/lists">📋 LISTS</Link>
         </div>
         <div className="online-indicator">
           <span className="radar-dot" />
@@ -129,6 +170,50 @@ Best regards`)
 
               {error && <div className="alert alert-error">{error}</div>}
 
+              {/* — Load from List — */}
+              <div className="form-group">
+                <label>📋 LOAD FROM CONTACT LIST</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: '8px', alignItems: 'end' }}>
+                  <select
+                    className="form-control"
+                    style={{ fontSize: '12px' }}
+                    value={selectedListId}
+                    onChange={e => { setSelectedListId(e.target.value); setListError('') }}
+                  >
+                    <option value="">— Choose a saved list —</option>
+                    {lists.map(l => (
+                      <option key={l.id} value={l.id}>
+                        {l.name} ({l.stats?.unsent ?? l.contacts.filter(c => !c.sent).length} unsent)
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    className="form-control"
+                    type="number"
+                    placeholder="N (all)"
+                    value={limitCount}
+                    onChange={e => setLimitCount(e.target.value)}
+                    style={{ width: '90px', fontSize: '12px' }}
+                    min="1"
+                  />
+                  <button
+                    className="btn btn-outline"
+                    style={{ fontSize: '11px', padding: '10px 14px', whiteSpace: 'nowrap' }}
+                    onClick={handleLoadFromList}
+                    disabled={loadingFromList || !selectedListId}
+                  >
+                    {loadingFromList ? '⏳...' : '📥 LOAD'}
+                  </button>
+                </div>
+                <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                  Leave N empty to load ALL unsent contacts from the list
+                </div>
+                {listError && <div style={{ color: 'var(--red-alert)', fontSize: '11px', marginTop: '6px' }}>{listError}</div>}
+              </div>
+
+              <div className="section-divider" />
+
+              {/* Manual Recipients */}
               <div className="form-group">
                 <label>RECIPIENTS ({recipients.length} added)</label>
                 <div style={{ marginBottom: '8px' }}>

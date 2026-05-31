@@ -302,6 +302,30 @@ tr:hover td { background: rgba(0, 212, 255, 0.03); }
 .send-status-item .email { color: var(--text-secondary); flex: 1; }
 .send-status-item .status-icon { font-size: 16px; }
 
+/* LIST CARDS (app/lists/page.tsx) */
+.list-card {
+  padding: 12px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  background: var(--navy-mid);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+  position: relative;
+}
+.list-card:hover { border-color: var(--blue-accent); }
+.list-card.active { border-color: var(--radar-green); background: rgba(0,255,136,0.05); }
+.list-card-name { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
+.list-card-meta { font-size: 11px; color: var(--text-secondary); }
+.list-delete-btn {
+  position: absolute; top: 10px; right: 10px;
+  background: none; border: none; cursor: pointer;
+  font-size: 11px; opacity: 0; transition: opacity 0.2s;
+  padding: 2px 4px;
+}
+.list-card:hover .list-delete-btn { opacity: 1; }
+.sent-tag { opacity: 0.6; }
+
 @media (max-width: 768px) {
   .stats-grid { grid-template-columns: 1fr 1fr; }
   .grid-2 { grid-template-columns: 1fr; }

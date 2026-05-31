@@ -3,12 +3,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { sendBrevoEmail, buildEmailHtml } from '@/lib/brevo'
 import { getSettings, addRecords, EmailRecord } from '@/lib/db'
 import { getTemplates, getRandomTemplate } from '@/lib/templates'
+import { markContactsSent } from '@/lib/contacts'
 
 export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest) {
   try {
-    const { recipients, subject, body, randomMode, templateIds } = await req.json()
+    const { recipients, subject, body, randomMode, templateIds, listId } = await req.json()
 
     if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
       return NextResponse.json({ error: 'No recipients provided' }, { status: 400 })
@@ -82,6 +83,14 @@ export async function POST(req: NextRequest) {
     }
 
     addRecords(records)
+
+    // Mark successfully sent contacts in the list
+    if (listId) {
+      const successfullySentEmails = results.filter(r => r.success).map(r => r.email)
+      if (successfullySentEmails.length > 0) {
+        markContactsSent(listId, successfullySentEmails)
+      }
+    }
 
     const sent = results.filter(r => r.success).length
     const failed = results.filter(r => !r.success).length
