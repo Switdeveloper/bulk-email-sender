@@ -12,6 +12,7 @@ export async function GET() {
       ...settings,
       brevoApiKey: settings.brevoApiKey ? '••••••••' + settings.brevoApiKey.slice(-4) : '',
       brevoSmtpPass: settings.brevoSmtpPass ? '••••••••' : '',
+      yelpApiKey: settings.yelpApiKey ? '••••••••' + settings.yelpApiKey.slice(-4) : '',
     }
     return NextResponse.json(safe)
   } catch (error: any) {
@@ -29,6 +30,9 @@ export async function POST(req: NextRequest) {
     }
     if (data.brevoSmtpPass && data.brevoSmtpPass.includes('••••')) {
       data.brevoSmtpPass = current.brevoSmtpPass
+    }
+    if (data.yelpApiKey && data.yelpApiKey.includes('••••')) {
+      data.yelpApiKey = current.yelpApiKey
     }
     saveSettings({ ...current, ...data })
     return NextResponse.json({ success: true })

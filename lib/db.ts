@@ -36,17 +36,22 @@ export interface Settings {
   senderEmail: string
   senderName: string
   defaultSubject: string
+  yelpApiKey: string
 }
 
 // — Settings helpers —
 export function getSettings(): Settings {
   const envKey = process.env.BREVO_API_KEY || ''
+  const envYelp = process.env.YELP_API_KEY || ''
   try {
     if (fs.existsSync(SETTINGS_FILE)) {
       const stored = JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf-8'))
       // Env var takes priority (real key not the masked placeholder)
       if (envKey && stored.brevoApiKey?.startsWith('•')) {
         stored.brevoApiKey = envKey
+      }
+      if (envYelp && stored.yelpApiKey?.startsWith('•')) {
+        stored.yelpApiKey = envYelp
       }
       return stored
     }
@@ -60,6 +65,7 @@ export function getSettings(): Settings {
     senderEmail: 'switdeveloper@gmail.com',
     senderName: 'Swit Developer',
     defaultSubject: 'Quick question about your website',
+    yelpApiKey: envYelp || '',
   }
 }
 

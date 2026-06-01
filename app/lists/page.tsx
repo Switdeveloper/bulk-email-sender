@@ -245,6 +245,7 @@ export default function Lists() {
 
                   <div style={{ display: 'flex', gap: '4px' }}>
                     <button onClick={() => setTab('upload')} style={{ padding: '6px 16px', background: tab === 'upload' ? 'var(--blue-accent)' : 'transparent', border: '1px solid var(--blue-accent)', color: tab === 'upload' ? 'var(--navy-deep)' : 'var(--blue-accent)', borderRadius: '6px', fontSize: '11px', letterSpacing: '1px', cursor: 'pointer', fontFamily: 'inherit', fontWeight: tab === 'upload' ? 'bold' : 'normal' }}>IMPORT</button>
+                    <button onClick={() => setTab('yelp')} style={{ padding: '6px 16px', background: tab === 'yelp' ? 'var(--radar-green)' : 'transparent', border: '1px solid var(--radar-green)', color: tab === 'yelp' ? 'var(--navy-deep)' : 'var(--radar-green)', borderRadius: '6px', fontSize: '11px', letterSpacing: '1px', cursor: 'pointer', fontFamily: 'inherit', fontWeight: tab === 'yelp' ? 'bold' : 'normal' }}>🔍 YELP</button>
                     <button onClick={() => setTab('contacts')} style={{ padding: '6px 16px', background: tab === 'contacts' ? 'var(--blue-accent)' : 'transparent', border: '1px solid var(--blue-accent)', color: tab === 'contacts' ? 'var(--navy-deep)' : 'var(--blue-accent)', borderRadius: '6px', fontSize: '11px', letterSpacing: '1px', cursor: 'pointer', fontFamily: 'inherit', fontWeight: tab === 'contacts' ? 'bold' : 'normal' }}>CONTACTS ({selected.contacts.length})</button>
                   </div>
                 </div>
@@ -398,6 +399,11 @@ export default function Lists() {
                   </div>
                 )}
 
+                {/* YELP SEARCH TAB */}
+                {tab === 'yelp' && (
+                  <YelpSearchTab selected={selected} onImported={() => load(selected.id)} />
+                )}
+
                 {/* CONTACTS TAB */}
                 {tab === 'contacts' && (
                   <div style={{ background: 'var(--navy-dark)', border: '1px solid var(--border)', borderRadius: '8px', padding: '24px', position: 'relative', overflow: 'hidden' }}>
@@ -436,6 +442,205 @@ export default function Lists() {
 
         </div>
       </div>
+    </div>
+  )
+}
+
+// — YelpSearchTab component —
+interface YelpBusiness {
+  id: string
+  name: string
+  phone: string
+  address: string
+  city: string
+  state: string
+  category: string
+  rating: number
+  reviewCount: number
+  price: string
+}
+
+interface Props {
+  selected: ContactList | null
+  onImported: () => void
+}
+
+function YelpSearchTab({ selected, onImported }: Props) {
+  const [term, setTerm] = useState('')
+  const [location, setLocation] = useState('')
+  const [results, setResults] = useState<YelpBusiness[]>([])
+  const [loading, setLoading] = useState(false)
+  const [searched, setSearched] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [importing, setImporting] = useState(false)
+  const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
+  const [totalResults, setTotalResults] = useState(0)
+
+  const doSearch = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!term.trim() || !location.trim()) return
+    setLoading(true)
+    setMsg(null)
+    setSearched(false)
+    setResults([])
+    setSelectedIds(new Set())
+    try {
+      const url = `/api/yelp?term=${encodeURIComponent(term)}&location=${encodeURIComponent(location)}&limit=20`
+      const res = await fetch(url)
+      const data = await res.json()
+      if (!res.ok) {
+        setMsg({ type: 'err', text: data.error || 'Search failed' })
+      } else {
+        setResults(data.businesses || [])
+        setTotalResults(data.total || 0)
+        setSearched(true)
+        const ids = new Set((data.businesses || []).map((b: YelpBusiness) => b.id))
+        setSelectedIds(ids)
+      }
+    } catch (e: unknown) {
+      setMsg({ type: 'err', text: e instanceof Error ? e.message : 'Network error' })
+    }
+    setLoading(false)
+  }
+
+  const toggle = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  const toggleAll = () => {
+    if (selectedIds.size === results.length) setSelectedIds(new Set())
+    else setSelectedIds(new Set(results.map(b => b.id)))
+  }
+
+  const doImport = async () => {
+    if (!selected || selectedIds.size === 0) return
+    setImporting(true)
+    setMsg(null)
+    const selectedBusinesses = results.filter(b => selectedIds.has(b.id))
+    const contacts = selectedBusinesses.map(b => ({
+      email: b.phone || `no-phone-${b.id}@yelp.import`,
+      name: b.name,
+      addedAt: new Date().toISOString(),
+    }))
+    try {
+      const res = await fetch(`/api/contacts/${selected.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ listId: selected.id, contacts }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setMsg({ type: 'ok', text: `✅ Imported ${selectedBusinesses.length} business${selectedBusinesses.length !== 1 ? 'es' : ''}! Yelp provides no emails — phone used as identifier.` })
+        onImported()
+        setSelectedIds(new Set())
+      } else {
+        setMsg({ type: 'err', text: data.error || 'Import failed' })
+      }
+    } catch (e: unknown) {
+      setMsg({ type: 'err', text: e instanceof Error ? e.message : 'Import error' })
+    }
+    setImporting(false)
+  }
+
+  return (
+    <div style={{ background: 'var(--navy-dark)', border: '1px solid var(--border)', borderRadius: '8px', padding: '24px', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, var(--radar-green), var(--blue-accent))' }} />
+      <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '13px', color: 'var(--radar-green)', letterSpacing: '2px', marginBottom: '20px', textTransform: 'uppercase' }}>🔍 Yelp Business Search</div>
+
+      <div style={{ marginBottom: '18px', padding: '12px 14px', borderRadius: '6px', background: 'rgba(0,212,255,0.05)', border: '1px solid rgba(0,212,255,0.2)', fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
+        ℹ️ <strong style={{ color: 'var(--blue-accent)' }}>Yelp provides:</strong> business name, phone, address, rating, category — <strong style={{ color: 'var(--amber)' }}>NO email addresses.</strong><br />
+        Imported contacts will use <strong style={{ color: 'var(--radar-green)' }}>phone as the contact identifier</strong>. You'll need a separate email sourcing tool to follow up via email.
+      </div>
+
+      <form onSubmit={doSearch} style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
+        <input type="text" value={term} onChange={e => setTerm(e.target.value)} placeholder="e.g. restaurants, dentists, plumbers" style={{ flex: '2', minWidth: '160px', padding: '8px 12px', background: 'var(--navy-mid)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-primary)', fontFamily: 'inherit', fontSize: '12px' }} />
+        <input type="text" value={location} onChange={e => setLocation(e.target.value)} placeholder="City, state or zip" style={{ flex: '1', minWidth: '120px', padding: '8px 12px', background: 'var(--navy-mid)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-primary)', fontFamily: 'inherit', fontSize: '12px' }} />
+        <button type="submit" disabled={loading || !term.trim() || !location.trim()} style={{ padding: '8px 18px', background: loading ? 'var(--border)' : 'var(--radar-green)', border: 'none', color: 'var(--navy-deep)', borderRadius: '6px', fontSize: '12px', letterSpacing: '1px', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', fontWeight: 'bold' }}>
+          {loading ? 'SEARCHING...' : '🔍 SEARCH'}
+        </button>
+      </form>
+
+      {searched && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+              {totalResults > 20 && <span>Showing 20 of </span>}
+              <span style={{ color: 'var(--radar-green)' }}>{totalResults}</span> businesses found
+              {selectedIds.size > 0 && <span> — <span style={{ color: 'var(--blue-accent)' }}>{selectedIds.size}</span> selected</span>}
+            </div>
+            <button onClick={toggleAll} style={{ padding: '4px 12px', background: 'transparent', border: '1px solid var(--blue-accent)', color: 'var(--blue-accent)', borderRadius: '6px', fontSize: '11px', letterSpacing: '1px', cursor: 'pointer', fontFamily: 'inherit' }}>
+              {selectedIds.size === results.length ? 'DESELECT ALL' : 'SELECT ALL'}
+            </button>
+          </div>
+
+          {results.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '30px', color: 'var(--text-secondary)', fontSize: '13px' }}>No businesses found. Try different keywords or location.</div>
+          )}
+
+          <div style={{ maxHeight: '360px', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: '8px', marginBottom: '14px' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={{ width: '36px', textAlign: 'center', fontSize: '10px', color: 'var(--radar-green)', letterSpacing: '2px', padding: '8px 6px', borderBottom: '2px solid var(--border)', textTransform: 'uppercase' }}></th>
+                  <th style={{ textAlign: 'left', fontSize: '10px', color: 'var(--radar-green)', letterSpacing: '2px', padding: '8px 10px', borderBottom: '2px solid var(--border)', textTransform: 'uppercase' }}>BUSINESS</th>
+                  <th style={{ textAlign: 'left', fontSize: '10px', color: 'var(--radar-green)', letterSpacing: '2px', padding: '8px 10px', borderBottom: '2px solid var(--border)', textTransform: 'uppercase', width: '110px' }}>PHONE</th>
+                  <th style={{ textAlign: 'left', fontSize: '10px', color: 'var(--radar-green)', letterSpacing: '2px', padding: '8px 10px', borderBottom: '2px solid var(--border)', textTransform: 'uppercase', width: '100px' }}>LOCATION</th>
+                  <th style={{ textAlign: 'left', fontSize: '10px', color: 'var(--radar-green)', letterSpacing: '2px', padding: '8px 10px', borderBottom: '2px solid var(--border)', textTransform: 'uppercase', width: '70px' }}>RATING</th>
+                </tr>
+              </thead>
+              <tbody>
+                {results.map(b => (
+                  <tr key={b.id} onClick={() => toggle(b.id)} style={{ cursor: 'pointer', background: selectedIds.has(b.id) ? 'rgba(0,255,136,0.06)' : 'transparent', transition: 'background 0.1s' }}>
+                    <td style={{ textAlign: 'center', padding: '8px 6px', borderBottom: '1px solid rgba(30,58,95,0.5)', fontSize: '14px' }}>
+                      <span style={{ color: selectedIds.has(b.id) ? 'var(--radar-green)' : 'var(--border)', fontSize: '16px' }}>
+                        {selectedIds.has(b.id) ? '☑️' : '⬜'}
+                      </span>
+                    </td>
+                    <td style={{ padding: '8px 10px', borderBottom: '1px solid rgba(30,58,95,0.5)' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--text-primary)', fontWeight: 600 }}>{b.name}</div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>{b.category}</div>
+                    </td>
+                    <td style={{ padding: '8px 10px', borderBottom: '1px solid rgba(30,58,95,0.5)', fontSize: '12px', color: b.phone ? 'var(--blue-accent)' : 'var(--text-secondary)' }}>
+                      {b.phone || '—'}
+                    </td>
+                    <td style={{ padding: '8px 10px', borderBottom: '1px solid rgba(30,58,95,0.5)', fontSize: '11px', color: 'var(--text-secondary)' }}>
+                      {b.city}{b.state ? `, ${b.state}` : ''}
+                    </td>
+                    <td style={{ padding: '8px 10px', borderBottom: '1px solid rgba(30,58,95,0.5)' }}>
+                      <span style={{ fontSize: '11px', color: 'var(--amber)', fontWeight: 'bold' }}>★ {b.rating}</span>
+                      <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>{b.reviewCount} reviews</div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+              {selectedIds.size} business{selectedIds.size !== 1 ? 'es' : ''} selected
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button onClick={() => { setSearched(false); setResults([]); setSelectedIds(new Set()) }} style={{ padding: '6px 14px', background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-secondary)', borderRadius: '6px', fontSize: '11px', letterSpacing: '1px', cursor: 'pointer', fontFamily: 'inherit' }}>
+                CLEAR
+              </button>
+              <button onClick={doImport} disabled={importing || selectedIds.size === 0} style={{ padding: '6px 16px', background: selectedIds.size > 0 && !importing ? 'var(--radar-green)' : 'var(--border)', border: 'none', color: selectedIds.size > 0 && !importing ? 'var(--navy-deep)' : 'var(--text-secondary)', borderRadius: '6px', fontSize: '11px', letterSpacing: '1px', cursor: selectedIds.size > 0 && !importing ? 'pointer' : 'not-allowed', fontFamily: 'inherit', fontWeight: 'bold' }}>
+                {importing ? 'IMPORTING...' : `📥 IMPORT ${selectedIds.size} BUSINESS${selectedIds.size !== 1 ? 'ES' : ''}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {msg && (
+        <div style={{ marginTop: '12px', padding: '14px 18px', borderRadius: '6px', background: msg.type === 'ok' ? 'rgba(0,255,136,0.1)' : 'rgba(255,68,68,0.1)', border: `1px solid var(--${msg.type === 'ok' ? 'radar-green' : 'red-alert'})`, color: msg.type === 'ok' ? 'var(--radar-green)' : 'var(--red-alert)', fontSize: '13px' }}>
+          {msg.text}
+        </div>
+      )}
     </div>
   )
 }

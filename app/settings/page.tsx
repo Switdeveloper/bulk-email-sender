@@ -11,6 +11,7 @@ interface Settings {
   senderEmail: string
   senderName: string
   defaultSubject: string
+  yelpApiKey: string
 }
 
 export default function SettingsPage() {
@@ -23,6 +24,7 @@ export default function SettingsPage() {
     senderEmail: 'switdeveloper@gmail.com',
     senderName: 'Swit Developer',
     defaultSubject: 'Quick question about your website',
+    yelpApiKey: '',
   })
   const [saved, setSaved] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -131,6 +133,22 @@ export default function SettingsPage() {
               </div>
               <div className="alert alert-info">
                 The compose page will auto-fill with this subject line.
+              </div>
+            </div>
+
+            <div className="panel">
+              <div className="panel-title">🔍 Yelp Business Search</div>
+              <div className="alert alert-info" style={{ marginBottom: '16px' }}>
+                <strong>Yelp Fusion API:</strong> Search businesses and import their info as contacts. Get your free key at{' '}
+                <a href="https://www.yelp.com/developers" target="_blank" rel="noopener" style={{ color: 'var(--blue-accent)' }}>yelp.com/developers</a> — 5,000 calls/day free.
+              </div>
+              <div className="form-group">
+                <label>YELP API KEY</label>
+                <input className="form-control" type="password" value={settings.yelpApiKey} onChange={e => setSettings({ ...settings, yelpApiKey: e.target.value })} placeholder="yelp_..." />
+                <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px' }}>Found in your Yelp Developers dashboard → Create App</div>
+              </div>
+              <div className="alert alert-info">
+                💡 Use the <strong>YELP SEARCH</strong> tab on the Lists page to find businesses. Yelp provides name, phone, address, rating — no emails.
               </div>
             </div>
 
