@@ -36,8 +36,3 @@ export async function deleteContact(id: string) {
 export async function updateContactStatus(contactId: string, status: { sent: boolean; lastSentAt?: string }) {
   await db.updateContactStatus(contactId, status);
 }
-
-export async function getContactsByListId(listId: string) {
-  const contacts = await db.getContacts();
-  return contacts.filter(contact => contact.listId === listId);
-}
