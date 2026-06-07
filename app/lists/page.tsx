@@ -1,6 +1,5 @@
 'use client'
 import { useState, useEffect, useRef, useCallback } from 'react'
-import Link from 'next/link'
 
 interface Contact { email: string; name: string; addedAt: string; sent: boolean; sentAt?: string }
 interface ContactList { id: string; name: string; description: string; contacts: Contact[]; createdAt: string }
@@ -151,296 +150,272 @@ export default function Lists() {
   const badCount = previews.filter(p => !p.ok).length
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--navy-deep)', color: 'var(--text-primary)', fontFamily: "'Share Tech Mono', monospace" }}>
-      <div style={{ background: 'var(--navy-dark)', borderBottom: '1px solid var(--border)', padding: '8px 30px', display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-secondary)', letterSpacing: '1px' }}>
-        <span>RED LIVE SYSTEMS</span>
-        <span style={{ color: 'var(--radar-green)' }}>CONTACT LISTS ACTIVE</span>
-      </div>
-      <nav style={{ background: 'var(--navy-dark)', borderBottom: '2px solid var(--blue-accent)', padding: '14px 30px', display: 'flex', alignItems: 'center', gap: '40px', position: 'sticky', top: 0, zIndex: 100 }}>
-        <div style={{ fontFamily: "'Orbitron', sans-serif", fontWeight: 900, fontSize: '20px', color: 'var(--blue-accent)', letterSpacing: '3px', textShadow: '0 0 20px rgba(0,212,255,0.5)' }}>
-          OPERATION<span style={{ color: 'var(--radar-green)' }}>MAIL</span>
-        </div>
-        <div style={{ display: 'flex', gap: '30px' }}>
-          <Link href="/" style={{ fontSize: '13px', letterSpacing: '2px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>DASHBOARD</Link>
-          <Link href="/compose" style={{ fontSize: '13px', letterSpacing: '2px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>COMPOSE</Link>
-          <Link href="/history" style={{ fontSize: '13px', letterSpacing: '2px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>HISTORY</Link>
-          <Link href="/settings" style={{ fontSize: '13px', letterSpacing: '2px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>SETTINGS</Link>
-          <Link href="/templates" style={{ fontSize: '13px', letterSpacing: '2px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>TEMPLATES</Link>
-          <Link href="/lists" style={{ fontSize: '13px', letterSpacing: '2px', color: 'var(--blue-accent)', textTransform: 'uppercase', borderBottom: '1px solid var(--blue-accent)', paddingBottom: '2px' }}>LISTS</Link>
-        </div>
-        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ width: '8px', height: '8px', background: 'var(--radar-green)', borderRadius: '50%', display: 'inline-block', animation: 'blink 1.5s ease-in-out infinite' }} />
-          <span style={{ fontSize: '11px', color: 'var(--radar-green)', letterSpacing: '2px' }}>SYSTEM ONLINE</span>
-        </div>
-      </nav>
+    <div className="container">
+      <div className="grid-sidebar">
 
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '30px 20px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '20px', alignItems: 'start' }}>
-
-          {/* LEFT SIDEBAR */}
-          <div>
-            <div style={{ background: 'var(--navy-dark)', border: '1px solid var(--border)', borderRadius: '8px', padding: '24px', position: 'relative', overflow: 'hidden' }}>
-              <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '13px', color: 'var(--blue-accent)', letterSpacing: '2px', marginBottom: '20px', textTransform: 'uppercase' }}>
-                SAVED LISTS
-              </div>
-              <button onClick={() => setShowCreate(s => !s)} style={{ width: '100%', marginBottom: '12px', padding: '8px', background: 'transparent', border: '1px solid var(--blue-accent)', color: 'var(--blue-accent)', borderRadius: '6px', fontSize: '12px', letterSpacing: '2px', cursor: 'pointer', fontFamily: 'inherit' }}>
-                {showCreate ? 'CANCEL' : '+ NEW LIST'}
-              </button>
-              {showCreate && (
-                <div style={{ marginBottom: '12px', padding: '12px', background: 'var(--navy-mid)', borderRadius: '8px' }}>
-                  <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="List name..." style={{ width: '100%', marginBottom: '8px', padding: '8px 10px', background: 'var(--navy-mid)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-primary)', fontFamily: 'inherit', fontSize: '12px', boxSizing: 'border-box' }} />
-                  <input value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder="Description (optional)" style={{ width: '100%', marginBottom: '8px', padding: '8px 10px', background: 'var(--navy-mid)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-primary)', fontFamily: 'inherit', fontSize: '12px', boxSizing: 'border-box' }} />
-                  <button onClick={createList} style={{ width: '100%', padding: '8px', background: 'var(--blue-accent)', border: 'none', color: 'var(--navy-deep)', borderRadius: '6px', fontSize: '12px', letterSpacing: '2px', cursor: 'pointer', fontWeight: 'bold', fontFamily: 'inherit' }}>
-                    CREATE LIST
-                  </button>
-                </div>
-              )}
-              {lists.length === 0 && (
-                <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-secondary)', fontSize: '12px' }}>No lists yet.</div>
-              )}
-              {lists.map(list => (
-                <div key={list.id} onClick={() => load(list.id)} style={{ padding: '12px', marginBottom: '8px', borderRadius: '8px', background: 'var(--navy-mid)', cursor: 'pointer', border: `1px solid ${selected?.id === list.id ? 'var(--radar-green)' : 'transparent'}`, position: 'relative', transition: 'all 0.2s' }}>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '3px' }}>{list.name}</div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{list.contacts.length} contact{list.contacts.length !== 1 ? 's' : ''}{list.description ? ' · ' + list.description : ''}</div>
-                  <button onClick={e => { e.stopPropagation(); delList(list.id) }} title="Delete" style={{ position: 'absolute', top: '8px', right: '8px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '11px', opacity: 0, color: 'var(--text-secondary)', fontFamily: 'inherit', transition: 'opacity 0.2s' }}>🗑️</button>
-                </div>
-              ))}
+        {/* LEFT SIDEBAR */}
+        <div>
+          <div className="card">
+            <div className="card-header">
+              <span className="card-header-icon indigo" />
+              SAVED LISTS
             </div>
-          </div>
-
-          {/* RIGHT CONTENT */}
-          <div>
-            {!selected && (
-              <div style={{ background: 'var(--navy-dark)', border: '1px solid var(--border)', borderRadius: '8px', padding: '24px', textAlign: 'center', color: 'var(--text-secondary)', minHeight: '400px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
-                <div style={{ fontSize: '64px', marginBottom: '16px' }}>📋</div>
-                <div style={{ fontSize: '14px', letterSpacing: '2px' }}>SELECT A LIST</div>
-                <div style={{ fontSize: '12px', marginTop: '8px', opacity: 0.6 }}>Or create a new one from the sidebar</div>
+            <button onClick={() => setShowCreate(s => !s)} className="btn btn-outline btn-sm" style={{ width: '100%', marginBottom: '12px' }}>
+              {showCreate ? 'CANCEL' : '+ NEW LIST'}
+            </button>
+            {showCreate && (
+              <div style={{ marginBottom: '12px', padding: '12px', background: 'var(--bg-surface)', borderRadius: '8px' }}>
+                <input value={newName} onChange={e => setNewName(e.target.value)} placeholder="List name..." className="form-control" style={{ marginBottom: '8px' }} />
+                <input value={newDesc} onChange={e => setNewDesc(e.target.value)} placeholder="Description (optional)" className="form-control" style={{ marginBottom: '8px' }} />
+                <button onClick={createList} className="btn btn-primary btn-sm" style={{ width: '100%' }}>
+                  CREATE LIST
+                </button>
               </div>
             )}
+            {lists.length === 0 && (
+              <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-muted)', fontSize: '12px' }}>No lists yet.</div>
+            )}
+            {lists.map(list => (
+              <div key={list.id} onClick={() => load(list.id)} style={{ padding: '12px', marginBottom: '8px', borderRadius: '8px', background: 'var(--bg-surface)', cursor: 'pointer', border: `1px solid ${selected?.id === list.id ? 'var(--success)' : 'transparent'}`, position: 'relative', transition: 'all 0.2s' }}>
+                <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '3px' }}>{list.name}</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{list.contacts.length} contact{list.contacts.length !== 1 ? 's' : ''}{list.description ? ' · ' + list.description : ''}</div>
+                <button onClick={e => { e.stopPropagation(); delList(list.id) }} title="Delete" style={{ position: 'absolute', top: '8px', right: '8px', background: 'none', border: 'none', cursor: 'pointer', fontSize: '11px', opacity: 0, color: 'var(--text-muted)', fontFamily: 'inherit', transition: 'opacity 0.2s' }}>🗑️</button>
+              </div>
+            ))}
+          </div>
+        </div>
 
-            {selected && (
-              <div>
-                {/* Header */}
-                <div style={{ background: 'var(--navy-dark)', border: '1px solid var(--border)', borderRadius: '8px', padding: '24px', marginBottom: '20px', position: 'relative', overflow: 'hidden' }}>
-                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, var(--blue-accent), var(--radar-green))' }} />
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
-                    <div>
-                      <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '13px', color: 'var(--blue-accent)', letterSpacing: '2px', marginBottom: '4px', textTransform: 'uppercase' }}>{selected.name}</div>
-                      {selected.description && <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{selected.description}</div>}
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                      <button onClick={resetSent} style={{ padding: '6px 12px', background: 'transparent', border: '1px solid var(--blue-accent)', color: 'var(--blue-accent)', borderRadius: '6px', fontSize: '11px', letterSpacing: '1px', cursor: 'pointer', fontFamily: 'inherit' }}>RESET SENT</button>
-                      <button onClick={clearSent} style={{ padding: '6px 12px', background: 'transparent', border: '1px solid var(--red-alert)', color: 'var(--red-alert)', borderRadius: '6px', fontSize: '11px', letterSpacing: '1px', cursor: 'pointer', fontFamily: 'inherit' }}>REMOVE SENT</button>
-                    </div>
+        {/* RIGHT CONTENT */}
+        <div>
+          {!selected && (
+            <div className="card" style={{ textAlign: 'center', color: 'var(--text-muted)', minHeight: '400px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ fontSize: '64px', marginBottom: '16px' }}>📋</div>
+              <div style={{ fontSize: '14px', letterSpacing: '2px' }}>SELECT A LIST</div>
+              <div style={{ fontSize: '12px', marginTop: '8px', opacity: 0.6 }}>Or create a new one from the sidebar</div>
+            </div>
+          )}
+
+          {selected && (
+            <div>
+              {/* Header */}
+              <div className="card" style={{ marginBottom: '20px' }}>
+                <div className="card-header">
+                  <span className="card-header-icon indigo" />
+                  <div>
+                    <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '13px', color: 'var(--accent)', letterSpacing: '2px', textTransform: 'uppercase' }}>{selected.name}</div>
+                    {selected.description && <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{selected.description}</div>}
                   </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
-                    {[{ label: 'TOTAL', val: stats.total, col: 'var(--blue-accent)' }, { label: 'UNSENT', val: stats.unsent, col: 'var(--radar-green)' }, { label: 'SENT', val: stats.sent, col: 'var(--yellow-warning)' }].map(s => (
-                      <div key={s.label} style={{ textAlign: 'center', padding: '14px', background: 'var(--navy-mid)', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                        <div style={{ fontSize: '26px', fontFamily: "'Orbitron', sans-serif", color: s.col }}>{s.val}</div>
-                        <div style={{ fontSize: '9px', color: 'var(--text-secondary)', letterSpacing: '2px', marginTop: '4px' }}>{s.label}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '4px' }}>
-                    <button onClick={() => setTab('upload')} style={{ padding: '6px 16px', background: tab === 'upload' ? 'var(--blue-accent)' : 'transparent', border: '1px solid var(--blue-accent)', color: tab === 'upload' ? 'var(--navy-deep)' : 'var(--blue-accent)', borderRadius: '6px', fontSize: '11px', letterSpacing: '1px', cursor: 'pointer', fontFamily: 'inherit', fontWeight: tab === 'upload' ? 'bold' : 'normal' }}>IMPORT</button>
-                    <button onClick={() => setTab('yelp')} style={{ padding: '6px 16px', background: tab === 'yelp' ? 'var(--radar-green)' : 'transparent', border: '1px solid var(--radar-green)', color: tab === 'yelp' ? 'var(--navy-deep)' : 'var(--radar-green)', borderRadius: '6px', fontSize: '11px', letterSpacing: '1px', cursor: 'pointer', fontFamily: 'inherit', fontWeight: tab === 'yelp' ? 'bold' : 'normal' }}>🔍 YELP</button>
-                    <button onClick={() => setTab('contacts')} style={{ padding: '6px 16px', background: tab === 'contacts' ? 'var(--blue-accent)' : 'transparent', border: '1px solid var(--blue-accent)', color: tab === 'contacts' ? 'var(--navy-deep)' : 'var(--blue-accent)', borderRadius: '6px', fontSize: '11px', letterSpacing: '1px', cursor: 'pointer', fontFamily: 'inherit', fontWeight: tab === 'contacts' ? 'bold' : 'normal' }}>CONTACTS ({selected.contacts.length})</button>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <button onClick={resetSent} className="btn btn-outline btn-sm">RESET SENT</button>
+                    <button onClick={clearSent} className="btn btn-outline btn-sm" style={{ borderColor: 'var(--danger)', color: 'var(--danger)' }}>REMOVE SENT</button>
                   </div>
                 </div>
 
-                {/* UPLOAD TAB */}
-                {tab === 'upload' && (
-                  <div style={{ background: 'var(--navy-dark)', border: '1px solid var(--border)', borderRadius: '8px', padding: '24px', position: 'relative', overflow: 'hidden' }}>
-                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, var(--blue-accent), var(--radar-green))' }} />
-                    <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '13px', color: 'var(--blue-accent)', letterSpacing: '2px', marginBottom: '20px', textTransform: 'uppercase' }}>Import Contacts</div>
-
-                    {/* Mode toggle */}
-                    <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
-                      <button onClick={() => { setImportMode('merge'); setPreviews([]) }} style={{ padding: '6px 14px', background: importMode === 'merge' ? 'var(--blue-accent)' : 'transparent', border: '1px solid var(--blue-accent)', color: importMode === 'merge' ? 'var(--navy-deep)' : 'var(--blue-accent)', borderRadius: '6px', fontSize: '11px', letterSpacing: '1px', cursor: 'pointer', fontFamily: 'inherit', fontWeight: importMode === 'merge' ? 'bold' : 'normal' }}>
-                        + MERGE — Add to existing
-                      </button>
-                      <button onClick={() => { setImportMode('replace'); setPreviews([]) }} style={{ padding: '6px 14px', background: importMode === 'replace' ? 'var(--red-alert)' : 'transparent', border: '1px solid var(--red-alert)', color: importMode === 'replace' ? 'white' : 'var(--red-alert)', borderRadius: '6px', fontSize: '11px', letterSpacing: '1px', cursor: 'pointer', fontFamily: 'inherit', fontWeight: importMode === 'replace' ? 'bold' : 'normal' }}>
-                        REPLACE — Clear & import new
-                      </button>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '16px' }}>
+                  {[{ label: 'TOTAL', val: stats.total, col: 'var(--accent)' }, { label: 'UNSENT', val: stats.unsent, col: 'var(--success)' }, { label: 'SENT', val: stats.sent, col: 'var(--amber)' }].map(s => (
+                    <div key={s.label} style={{ textAlign: 'center', padding: '14px', background: 'var(--bg-surface)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                      <div style={{ fontSize: '26px', fontFamily: "'Orbitron', sans-serif", color: s.col }}>{s.val}</div>
+                      <div style={{ fontSize: '9px', color: 'var(--text-muted)', letterSpacing: '2px', marginTop: '4px' }}>{s.label}</div>
                     </div>
+                  ))}
+                </div>
 
-                    {/* Drop zone */}
-                    <div
-                      ref={dropRef}
-                      onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
-                      onDragLeave={() => setIsDragging(false)}
-                      onDrop={onDrop}
-                      onClick={() => fileRef.current?.click()}
-                      style={{
-                        border: `2px dashed ${isDragging ? 'var(--radar-green)' : 'var(--border)'}`,
-                        borderRadius: '12px', padding: '32px', textAlign: 'center', cursor: 'pointer',
-                        background: isDragging ? 'rgba(0,255,136,0.05)' : 'var(--navy-mid)',
-                        transition: 'all 0.2s', marginBottom: '16px', position: 'relative', overflow: 'hidden',
-                      }}
-                    >
-                      <div style={{ fontSize: '40px', marginBottom: '12px', opacity: isDragging ? 0.3 : 1 }}>📂</div>
-                      <div style={{ fontSize: '14px', color: 'var(--blue-accent)', letterSpacing: '1px', marginBottom: '6px' }}>
-                        {isDragging ? 'DROP FILE HERE' : 'DRAG & DROP FILE'}
-                      </div>
-                      <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>CSV or TXT · click to browse</div>
-                      <div style={{ marginTop: '12px', display: 'flex', gap: '6px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                        <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: '20px', fontSize: '10px', letterSpacing: '1px', fontWeight: 'bold', background: 'rgba(0,212,255,0.15)', color: 'var(--blue-accent)', border: '1px solid var(--blue-accent)' }}>.csv</span>
-                        <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: '20px', fontSize: '10px', letterSpacing: '1px', fontWeight: 'bold', background: 'rgba(0,212,255,0.15)', color: 'var(--blue-accent)', border: '1px solid var(--blue-accent)' }}>.txt</span>
-                        <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: '20px', fontSize: '10px', letterSpacing: '1px', fontWeight: 'bold', background: 'rgba(0,212,255,0.15)', color: 'var(--blue-accent)', border: '1px solid var(--blue-accent)' }}>Name email</span>
-                        <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: '20px', fontSize: '10px', letterSpacing: '1px', fontWeight: 'bold', background: 'rgba(0,212,255,0.15)', color: 'var(--blue-accent)', border: '1px solid var(--blue-accent)' }}>Name, email</span>
-                        <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: '20px', fontSize: '10px', letterSpacing: '1px', fontWeight: 'bold', background: 'rgba(0,212,255,0.15)', color: 'var(--blue-accent)', border: '1px solid var(--blue-accent)' }}>email only</span>
-                      </div>
-                    </div>
-
-                    <input ref={fileRef} type="file" accept=".csv,.txt" style={{ display: 'none' }} onChange={onFileChange} />
-
-                    {/* Divider */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                      <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
-                      <span style={{ fontSize: '11px', color: 'var(--text-secondary)', letterSpacing: '2px' }}>OR PASTE TEXT</span>
-                      <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
-                    </div>
-
-                    {/* Paste area */}
-                    <textarea
-                      value={pasteText}
-                      onChange={e => setPasteText(e.target.value)}
-                      placeholder={"Paste emails here — one per line\n\nExamples:\nJohn Doe <john@example.com>\njane@example.com\nJane, jane@example.com"}
-                      style={{ width: '100%', minHeight: '110px', padding: '10px 14px', background: 'var(--navy-mid)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-primary)', fontFamily: "'Share Tech Mono', monospace", fontSize: '12px', resize: 'vertical', marginBottom: '8px', boxSizing: 'border-box' }}
-                    />
-                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                      <button onClick={() => doPreview(pasteText)} disabled={!pasteText.trim()} style={{ padding: '6px 14px', background: 'transparent', border: '1px solid var(--blue-accent)', color: 'var(--blue-accent)', borderRadius: '6px', fontSize: '11px', letterSpacing: '1px', cursor: pasteText.trim() ? 'pointer' : 'not-allowed', opacity: pasteText.trim() ? 1 : 0.4, fontFamily: 'inherit' }}>
-                        PREVIEW PARSED
-                      </button>
-                      <button onClick={clearAll} style={{ padding: '6px 14px', background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-secondary)', borderRadius: '6px', fontSize: '11px', letterSpacing: '1px', cursor: 'pointer', fontFamily: 'inherit' }}>
-                        CLEAR
-                      </button>
-                    </div>
-
-                    {/* Preview */}
-                    {previews.length > 0 && (
-                      <div style={{ marginTop: '16px', border: '1px solid var(--border)', borderRadius: '8px', overflow: 'hidden' }}>
-                        <div style={{ padding: '12px 16px', background: 'var(--navy-mid)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                          <div style={{ fontSize: '12px', letterSpacing: '1px' }}>
-                            PREVIEW — <span style={{ color: 'var(--blue-accent)' }}>{previews.length}</span> found
-                          </div>
-                          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                            {okCount > 0 && <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: '20px', fontSize: '10px', background: 'rgba(0,255,136,0.15)', color: 'var(--radar-green)', border: '1px solid var(--radar-green)', fontWeight: 'bold' }}>{okCount} valid</span>}
-                            {dupCount > 0 && <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: '20px', fontSize: '10px', background: 'rgba(255,170,0,0.15)', color: 'var(--amber)', border: '1px solid var(--amber)', fontWeight: 'bold' }}>{dupCount} dup</span>}
-                            {badCount > 0 && <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: '20px', fontSize: '10px', background: 'rgba(255,68,68,0.15)', color: 'var(--red-alert)', border: '1px solid var(--red-alert)', fontWeight: 'bold' }}>{badCount} bad</span>}
-                          </div>
-                        </div>
-
-                        <div style={{ maxHeight: '240px', overflowY: 'auto', background: 'var(--navy-dark)' }}>
-                          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                            <thead>
-                              <tr>
-                                <th style={{ textAlign: 'left', fontSize: '10px', color: 'var(--blue-accent)', letterSpacing: '2px', padding: '8px 14px', borderBottom: '2px solid var(--border)', textTransform: 'uppercase' }}></th>
-                                <th style={{ textAlign: 'left', fontSize: '10px', color: 'var(--blue-accent)', letterSpacing: '2px', padding: '8px 14px', borderBottom: '2px solid var(--border)', textTransform: 'uppercase' }}>NAME</th>
-                                <th style={{ textAlign: 'left', fontSize: '10px', color: 'var(--blue-accent)', letterSpacing: '2px', padding: '8px 14px', borderBottom: '2px solid var(--border)', textTransform: 'uppercase' }}>EMAIL</th>
-                                <th style={{ textAlign: 'left', fontSize: '10px', color: 'var(--blue-accent)', letterSpacing: '2px', padding: '8px 14px', borderBottom: '2px solid var(--border)', textTransform: 'uppercase', width: '70px' }}>STATUS</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {previews.slice(0, 50).map((p, i) => (
-                                <tr key={i} style={{ opacity: p.ok && !p.dup ? 1 : 0.45 }}>
-                                  <td style={{ padding: '8px 14px', borderBottom: '1px solid rgba(30,58,95,0.5)', fontSize: '14px' }}>
-                                    {p.ok ? <span style={{ color: 'var(--radar-green)' }}>&#10003;</span> : <span style={{ color: 'var(--red-alert)' }}>&#10007;</span>}
-                                  </td>
-                                  <td style={{ padding: '8px 14px', borderBottom: '1px solid rgba(30,58,95,0.5)', fontSize: '12px' }}>{p.name || '—'}</td>
-                                  <td style={{ padding: '8px 14px', borderBottom: '1px solid rgba(30,58,95,0.5)', fontSize: '12px', color: p.ok ? 'var(--blue-accent)' : 'var(--red-alert)' }}>{p.email}</td>
-                                  <td style={{ padding: '8px 14px', borderBottom: '1px solid rgba(30,58,95,0.5)' }}>
-                                    {p.dup
-                                      ? <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '20px', fontSize: '9px', background: 'rgba(255,170,0,0.15)', color: 'var(--amber)', border: '1px solid var(--amber)', fontWeight: 'bold' }}>DUP</span>
-                                      : !p.ok
-                                      ? <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '20px', fontSize: '9px', background: 'rgba(255,68,68,0.15)', color: 'var(--red-alert)', border: '1px solid var(--red-alert)', fontWeight: 'bold' }}>BAD</span>
-                                      : <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: '20px', fontSize: '9px', background: 'rgba(0,255,136,0.15)', color: 'var(--radar-green)', border: '1px solid var(--radar-green)', fontWeight: 'bold' }}>OK</span>}
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                          {previews.length > 50 && (
-                            <div style={{ padding: '10px 16px', fontSize: '11px', color: 'var(--text-secondary)', textAlign: 'center', borderTop: '1px solid var(--border)' }}>
-                              ...and {previews.length - 50} more
-                            </div>
-                          )}
-                        </div>
-
-                        <div style={{ padding: '14px 16px', background: 'var(--navy-mid)', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                          <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
-                            Will import <span style={{ color: 'var(--radar-green)', fontWeight: 'bold' }}>{okCount}</span> new contact{okCount !== 1 ? 's' : ''}
-                            {dupCount > 0 && <span> · {dupCount} skipped</span>}
-                            {badCount > 0 && <span> · {badCount} invalid</span>}
-                          </div>
-                          <div style={{ display: 'flex', gap: '8px' }}>
-                            <button onClick={clearAll} style={{ padding: '6px 14px', background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-secondary)', borderRadius: '6px', fontSize: '11px', letterSpacing: '1px', cursor: 'pointer', fontFamily: 'inherit' }}>CANCEL</button>
-                            <button onClick={doImport} disabled={uploading || okCount === 0} style={{ padding: '6px 16px', background: okCount > 0 && !uploading ? 'var(--blue-accent)' : 'var(--border)', border: 'none', color: okCount > 0 && !uploading ? 'var(--navy-deep)' : 'var(--text-secondary)', borderRadius: '6px', fontSize: '11px', letterSpacing: '1px', cursor: okCount > 0 && !uploading ? 'pointer' : 'not-allowed', fontFamily: 'inherit', fontWeight: 'bold' }}>
-                              {uploading ? 'IMPORTING...' : `IMPORT ${okCount} CONTACT${okCount !== 1 ? 'S' : ''}`}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Done */}
-                    {done && (
-                      <div style={{ marginTop: '12px', padding: '14px 18px', borderRadius: '6px', background: 'rgba(0,255,136,0.1)', border: '1px solid var(--radar-green)', color: 'var(--radar-green)', fontSize: '13px' }}>
-                        {done}
-                      </div>
-                    )}
-                    {err && (
-                      <div style={{ marginTop: '12px', padding: '14px 18px', borderRadius: '6px', background: 'rgba(255,68,68,0.1)', border: '1px solid var(--red-alert)', color: 'var(--red-alert)', fontSize: '13px' }}>
-                        {err}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* YELP SEARCH TAB */}
-                {tab === 'yelp' && (
-                  <YelpSearchTab selected={selected} onImported={() => load(selected.id)} />
-                )}
-
-                {/* CONTACTS TAB */}
-                {tab === 'contacts' && (
-                  <div style={{ background: 'var(--navy-dark)', border: '1px solid var(--border)', borderRadius: '8px', padding: '24px', position: 'relative', overflow: 'hidden' }}>
-                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, var(--blue-accent), var(--radar-green))' }} />
-                    <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '13px', color: 'var(--blue-accent)', letterSpacing: '2px', marginBottom: '20px', textTransform: 'uppercase' }}>
-                      Contacts ({selected.contacts.length})
-                    </div>
-                    {selected.contacts.length === 0 ? (
-                      <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>
-                        <div style={{ fontSize: '48px', marginBottom: '12px' }}>📭</div>
-                        <div style={{ fontSize: '13px' }}>No contacts yet</div>
-                        <div style={{ fontSize: '12px', marginTop: '6px', opacity: 0.6 }}>Go to IMPORT to bulk-upload</div>
-                      </div>
-                    ) : (
-                      <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
-                        {selected.contacts.map(c => (
-                          <div key={c.email} style={{ display: 'flex', alignItems: 'center', padding: '10px 12px', borderBottom: '1px solid rgba(30,58,95,0.5)', gap: '10px' }}>
-                            <span style={{ fontSize: '16px' }}>{c.sent ? '✅' : '⭕'}</span>
-                            <span style={{ flex: 1 }}>
-                              <span style={{ color: 'var(--text-primary)', fontSize: '13px' }}>{c.name ? c.name + ' ' : ''}</span>
-                              <span style={{ color: c.sent ? 'var(--radar-green)' : 'var(--blue-accent)', fontSize: '13px' }}>{c.email}</span>
-                              {c.sent && c.sentAt && (
-                                <span style={{ fontSize: '11px', color: 'var(--text-secondary)', marginLeft: '8px' }}>— sent {new Date(c.sentAt).toLocaleDateString()}</span>
-                              )}
-                            </span>
-                            <button onClick={() => rmContact(c.email)} title="Remove" style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '4px 6px', fontSize: '14px', borderRadius: '4px', fontFamily: 'inherit', transition: 'color 0.2s' }}>✕</button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
+                <div style={{ display: 'flex', gap: '4px' }}>
+                  <button onClick={() => setTab('upload')} className={`btn btn-sm ${tab === 'upload' ? 'btn-primary' : 'btn-outline'}`}>IMPORT</button>
+                  <button onClick={() => setTab('yelp')} style={{ padding: '6px 16px', background: tab === 'yelp' ? 'var(--success)' : 'transparent', border: '1px solid var(--success)', color: tab === 'yelp' ? 'var(--bg-deep)' : 'var(--success)', borderRadius: '6px', fontSize: '11px', letterSpacing: '1px', cursor: 'pointer', fontFamily: 'inherit', fontWeight: tab === 'yelp' ? 'bold' : 'normal' }}>🔍 YELP</button>
+                  <button onClick={() => setTab('contacts')} className={`btn btn-sm ${tab === 'contacts' ? 'btn-primary' : 'btn-outline'}`}>CONTACTS ({selected.contacts.length})</button>
+                </div>
               </div>
-            )}
-          </div>
 
+              {/* UPLOAD TAB */}
+              {tab === 'upload' && (
+                <div className="card">
+                  <div className="card-header">
+                    <span className="card-header-icon indigo" />
+                    Import Contacts
+                  </div>
+
+                  {/* Mode toggle */}
+                  <div style={{ display: 'flex', gap: '8px', marginBottom: '16px', flexWrap: 'wrap' }}>
+                    <button onClick={() => { setImportMode('merge'); setPreviews([]) }} style={{ padding: '6px 14px', background: importMode === 'merge' ? 'var(--accent)' : 'transparent', border: '1px solid var(--accent)', color: importMode === 'merge' ? 'var(--bg-deep)' : 'var(--accent)', borderRadius: '6px', fontSize: '11px', letterSpacing: '1px', cursor: 'pointer', fontFamily: 'inherit', fontWeight: importMode === 'merge' ? 'bold' : 'normal' }}>
+                      + MERGE — Add to existing
+                    </button>
+                    <button onClick={() => { setImportMode('replace'); setPreviews([]) }} style={{ padding: '6px 14px', background: importMode === 'replace' ? 'var(--danger)' : 'transparent', border: '1px solid var(--danger)', color: importMode === 'replace' ? 'white' : 'var(--danger)', borderRadius: '6px', fontSize: '11px', letterSpacing: '1px', cursor: 'pointer', fontFamily: 'inherit', fontWeight: importMode === 'replace' ? 'bold' : 'normal' }}>
+                      REPLACE — Clear & import new
+                    </button>
+                  </div>
+
+                  {/* Drop zone */}
+                  <div
+                    ref={dropRef}
+                    onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
+                    onDragLeave={() => setIsDragging(false)}
+                    onDrop={onDrop}
+                    onClick={() => fileRef.current?.click()}
+                    className="drop-zone"
+                    style={{
+                      borderColor: isDragging ? 'var(--success)' : undefined,
+                      background: isDragging ? 'rgba(0,255,136,0.05)' : undefined,
+                    }}
+                  >
+                    <div style={{ fontSize: '40px', marginBottom: '12px', opacity: isDragging ? 0.3 : 1 }}>📂</div>
+                    <div style={{ fontSize: '14px', color: 'var(--accent)', letterSpacing: '1px', marginBottom: '6px' }}>
+                      {isDragging ? 'DROP FILE HERE' : 'DRAG & DROP FILE'}
+                    </div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>CSV or TXT · click to browse</div>
+                    <div style={{ marginTop: '12px', display: 'flex', gap: '6px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                      <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: '20px', fontSize: '10px', letterSpacing: '1px', fontWeight: 'bold', background: 'rgba(0,212,255,0.15)', color: 'var(--accent)', border: '1px solid var(--accent)' }}>.csv</span>
+                      <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: '20px', fontSize: '10px', letterSpacing: '1px', fontWeight: 'bold', background: 'rgba(0,212,255,0.15)', color: 'var(--accent)', border: '1px solid var(--accent)' }}>.txt</span>
+                      <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: '20px', fontSize: '10px', letterSpacing: '1px', fontWeight: 'bold', background: 'rgba(0,212,255,0.15)', color: 'var(--accent)', border: '1px solid var(--accent)' }}>Name email</span>
+                      <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: '20px', fontSize: '10px', letterSpacing: '1px', fontWeight: 'bold', background: 'rgba(0,212,255,0.15)', color: 'var(--accent)', border: '1px solid var(--accent)' }}>Name, email</span>
+                      <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: '20px', fontSize: '10px', letterSpacing: '1px', fontWeight: 'bold', background: 'rgba(0,212,255,0.15)', color: 'var(--accent)', border: '1px solid var(--accent)' }}>email only</span>
+                    </div>
+                  </div>
+
+                  <input ref={fileRef} type="file" accept=".csv,.txt" style={{ display: 'none' }} onChange={onFileChange} />
+
+                  {/* Divider */}
+                  <div className="divider">OR PASTE TEXT</div>
+
+                  {/* Paste area */}
+                  <textarea
+                    value={pasteText}
+                    onChange={e => setPasteText(e.target.value)}
+                    placeholder={"Paste emails here — one per line\n\nExamples:\nJohn Doe <john@example.com>\njane@example.com\nJane, jane@example.com"}
+                    className="form-control"
+                    style={{ minHeight: '110px', resize: 'vertical', marginBottom: '8px' }}
+                  />
+                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                    <button onClick={() => doPreview(pasteText)} disabled={!pasteText.trim()} className="btn btn-outline btn-sm" style={{ opacity: pasteText.trim() ? 1 : 0.4, cursor: pasteText.trim() ? 'pointer' : 'not-allowed' }}>
+                      PREVIEW PARSED
+                    </button>
+                    <button onClick={clearAll} className="btn btn-outline btn-sm">
+                      CLEAR
+                    </button>
+                  </div>
+
+                  {/* Preview */}
+                  {previews.length > 0 && (
+                    <div style={{ marginTop: '16px', border: '1px solid var(--border)', borderRadius: '8px', overflow: 'hidden' }}>
+                      <div style={{ padding: '12px 16px', background: 'var(--bg-surface)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                        <div style={{ fontSize: '12px', letterSpacing: '1px' }}>
+                          PREVIEW — <span style={{ color: 'var(--accent)' }}>{previews.length}</span> found
+                        </div>
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                          {okCount > 0 && <span className="badge badge-success">{okCount} valid</span>}
+                          {dupCount > 0 && <span className="badge badge-warning">{dupCount} dup</span>}
+                          {badCount > 0 && <span className="badge badge-danger">{badCount} bad</span>}
+                        </div>
+                      </div>
+
+                      <div className="table-wrapper" style={{ maxHeight: '240px' }}>
+                        <table>
+                          <thead>
+                            <tr>
+                              <th style={{ textAlign: 'left', fontSize: '10px', color: 'var(--accent)', letterSpacing: '2px', padding: '8px 14px', borderBottom: '2px solid var(--border)', textTransform: 'uppercase' }}></th>
+                              <th style={{ textAlign: 'left', fontSize: '10px', color: 'var(--accent)', letterSpacing: '2px', padding: '8px 14px', borderBottom: '2px solid var(--border)', textTransform: 'uppercase' }}>NAME</th>
+                              <th style={{ textAlign: 'left', fontSize: '10px', color: 'var(--accent)', letterSpacing: '2px', padding: '8px 14px', borderBottom: '2px solid var(--border)', textTransform: 'uppercase' }}>EMAIL</th>
+                              <th style={{ textAlign: 'left', fontSize: '10px', color: 'var(--accent)', letterSpacing: '2px', padding: '8px 14px', borderBottom: '2px solid var(--border)', textTransform: 'uppercase', width: '70px' }}>STATUS</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {previews.slice(0, 50).map((p, i) => (
+                              <tr key={i} style={{ opacity: p.ok && !p.dup ? 1 : 0.45 }}>
+                                <td style={{ padding: '8px 14px', borderBottom: '1px solid rgba(30,58,95,0.5)', fontSize: '14px' }}>
+                                  {p.ok ? <span style={{ color: 'var(--success)' }}>&#10003;</span> : <span style={{ color: 'var(--danger)' }}>&#10007;</span>}
+                                </td>
+                                <td style={{ padding: '8px 14px', borderBottom: '1px solid rgba(30,58,95,0.5)', fontSize: '12px' }}>{p.name || '—'}</td>
+                                <td style={{ padding: '8px 14px', borderBottom: '1px solid rgba(30,58,95,0.5)', fontSize: '12px', color: p.ok ? 'var(--accent)' : 'var(--danger)' }}>{p.email}</td>
+                                <td style={{ padding: '8px 14px', borderBottom: '1px solid rgba(30,58,95,0.5)' }}>
+                                  {p.dup
+                                    ? <span className="badge badge-warning">DUP</span>
+                                    : !p.ok
+                                    ? <span className="badge badge-danger">BAD</span>
+                                    : <span className="badge badge-success">OK</span>}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                        {previews.length > 50 && (
+                          <div style={{ padding: '10px 16px', fontSize: '11px', color: 'var(--text-muted)', textAlign: 'center', borderTop: '1px solid var(--border)' }}>
+                            ...and {previews.length - 50} more
+                          </div>
+                        )}
+                      </div>
+
+                      <div style={{ padding: '14px 16px', background: 'var(--bg-surface)', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                          Will import <span style={{ color: 'var(--success)', fontWeight: 'bold' }}>{okCount}</span> new contact{okCount !== 1 ? 's' : ''}
+                          {dupCount > 0 && <span> · {dupCount} skipped</span>}
+                          {badCount > 0 && <span> · {badCount} invalid</span>}
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button onClick={clearAll} className="btn btn-outline btn-sm">CANCEL</button>
+                          <button onClick={doImport} disabled={uploading || okCount === 0} className="btn btn-primary btn-sm" style={{ opacity: okCount > 0 && !uploading ? 1 : 0.4, cursor: okCount > 0 && !uploading ? 'pointer' : 'not-allowed' }}>
+                            {uploading ? 'IMPORTING...' : `IMPORT ${okCount} CONTACT${okCount !== 1 ? 'S' : ''}`}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {done && (
+                    <div className="alert alert-success" style={{ marginTop: '12px' }}>
+                      {done}
+                    </div>
+                  )}
+                  {err && (
+                    <div className="alert alert-danger" style={{ marginTop: '12px' }}>
+                      {err}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* YELP SEARCH TAB */}
+              {tab === 'yelp' && (
+                <YelpSearchTab selected={selected} onImported={() => load(selected.id)} />
+              )}
+
+              {/* CONTACTS TAB */}
+              {tab === 'contacts' && (
+                <div className="card">
+                  <div className="card-header">
+                    <span className="card-header-icon indigo" />
+                    Contacts ({selected.contacts.length})
+                  </div>
+                  {selected.contacts.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
+                      <div style={{ fontSize: '48px', marginBottom: '12px' }}>📭</div>
+                      <div style={{ fontSize: '13px' }}>No contacts yet</div>
+                      <div style={{ fontSize: '12px', marginTop: '6px', opacity: 0.6 }}>Go to IMPORT to bulk-upload</div>
+                    </div>
+                  ) : (
+                    <div style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                      {selected.contacts.map(c => (
+                        <div key={c.email} style={{ display: 'flex', alignItems: 'center', padding: '10px 12px', borderBottom: '1px solid rgba(30,58,95,0.5)', gap: '10px' }}>
+                          <span style={{ fontSize: '16px' }}>{c.sent ? '✅' : '⭕'}</span>
+                          <span style={{ flex: 1 }}>
+                            <span style={{ color: 'var(--text-primary)', fontSize: '13px' }}>{c.name ? c.name + ' ' : ''}</span>
+                            <span style={{ color: c.sent ? 'var(--success)' : 'var(--accent)', fontSize: '13px' }}>{c.email}</span>
+                            {c.sent && c.sentAt && (
+                              <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginLeft: '8px' }}>— sent {new Date(c.sentAt).toLocaleDateString()}</span>
+                            )}
+                          </span>
+                          <button onClick={() => rmContact(c.email)} title="Remove" style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px 6px', fontSize: '14px', borderRadius: '4px', fontFamily: 'inherit', transition: 'color 0.2s' }}>✕</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
+
       </div>
     </div>
   )
@@ -494,7 +469,7 @@ function YelpSearchTab({ selected, onImported }: Props) {
         setResults(data.businesses || [])
         setTotalResults(data.total || 0)
         setSearched(true)
-        const ids = new Set((data.businesses || []).map((b: YelpBusiness) => b.id))
+        const ids: Set<string> = new Set((data.businesses || []).map((b: YelpBusiness) => b.id))
         setSelectedIds(ids)
       }
     } catch (e: unknown) {
@@ -547,19 +522,21 @@ function YelpSearchTab({ selected, onImported }: Props) {
   }
 
   return (
-    <div style={{ background: 'var(--navy-dark)', border: '1px solid var(--border)', borderRadius: '8px', padding: '24px', position: 'relative', overflow: 'hidden' }}>
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, var(--radar-green), var(--blue-accent))' }} />
-      <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '13px', color: 'var(--radar-green)', letterSpacing: '2px', marginBottom: '20px', textTransform: 'uppercase' }}>🔍 Yelp Business Search</div>
+    <div className="card">
+      <div className="card-header">
+        <span className="card-header-icon green" />
+        🔍 Yelp Business Search
+      </div>
 
-      <div style={{ marginBottom: '18px', padding: '12px 14px', borderRadius: '6px', background: 'rgba(0,212,255,0.05)', border: '1px solid rgba(0,212,255,0.2)', fontSize: '12px', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-        ℹ️ <strong style={{ color: 'var(--blue-accent)' }}>Yelp provides:</strong> business name, phone, address, rating, category — <strong style={{ color: 'var(--amber)' }}>NO email addresses.</strong><br />
-        Imported contacts will use <strong style={{ color: 'var(--radar-green)' }}>phone as the contact identifier</strong>. You'll need a separate email sourcing tool to follow up via email.
+      <div className="alert alert-info" style={{ marginBottom: '18px', fontSize: '12px', lineHeight: '1.6' }}>
+        ℹ️ <strong style={{ color: 'var(--accent)' }}>Yelp provides:</strong> business name, phone, address, rating, category — <strong style={{ color: 'var(--amber)' }}>NO email addresses.</strong><br />
+        Imported contacts will use <strong style={{ color: 'var(--success)' }}>phone as the contact identifier</strong>. You'll need a separate email sourcing tool to follow up via email.
       </div>
 
       <form onSubmit={doSearch} style={{ display: 'flex', gap: '10px', marginBottom: '16px', flexWrap: 'wrap' }}>
-        <input type="text" value={term} onChange={e => setTerm(e.target.value)} placeholder="e.g. restaurants, dentists, plumbers" style={{ flex: '2', minWidth: '160px', padding: '8px 12px', background: 'var(--navy-mid)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-primary)', fontFamily: 'inherit', fontSize: '12px' }} />
-        <input type="text" value={location} onChange={e => setLocation(e.target.value)} placeholder="City, state or zip" style={{ flex: '1', minWidth: '120px', padding: '8px 12px', background: 'var(--navy-mid)', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-primary)', fontFamily: 'inherit', fontSize: '12px' }} />
-        <button type="submit" disabled={loading || !term.trim() || !location.trim()} style={{ padding: '8px 18px', background: loading ? 'var(--border)' : 'var(--radar-green)', border: 'none', color: 'var(--navy-deep)', borderRadius: '6px', fontSize: '12px', letterSpacing: '1px', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', fontWeight: 'bold' }}>
+        <input type="text" value={term} onChange={e => setTerm(e.target.value)} placeholder="e.g. restaurants, dentists, plumbers" className="form-control" style={{ flex: '2', minWidth: '160px' }} />
+        <input type="text" value={location} onChange={e => setLocation(e.target.value)} placeholder="City, state or zip" className="form-control" style={{ flex: '1', minWidth: '120px' }} />
+        <button type="submit" disabled={loading || !term.trim() || !location.trim()} style={{ padding: '8px 18px', background: loading ? 'var(--border)' : 'var(--success)', border: 'none', color: loading ? 'var(--text-muted)' : 'var(--bg-deep)', borderRadius: '6px', fontSize: '12px', letterSpacing: '1px', cursor: loading ? 'not-allowed' : 'pointer', fontFamily: 'inherit', fontWeight: 'bold' }}>
           {loading ? 'SEARCHING...' : '🔍 SEARCH'}
         </button>
       </form>
@@ -567,52 +544,52 @@ function YelpSearchTab({ selected, onImported }: Props) {
       {searched && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
-            <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
               {totalResults > 20 && <span>Showing 20 of </span>}
-              <span style={{ color: 'var(--radar-green)' }}>{totalResults}</span> businesses found
-              {selectedIds.size > 0 && <span> — <span style={{ color: 'var(--blue-accent)' }}>{selectedIds.size}</span> selected</span>}
+              <span style={{ color: 'var(--success)' }}>{totalResults}</span> businesses found
+              {selectedIds.size > 0 && <span> — <span style={{ color: 'var(--accent)' }}>{selectedIds.size}</span> selected</span>}
             </div>
-            <button onClick={toggleAll} style={{ padding: '4px 12px', background: 'transparent', border: '1px solid var(--blue-accent)', color: 'var(--blue-accent)', borderRadius: '6px', fontSize: '11px', letterSpacing: '1px', cursor: 'pointer', fontFamily: 'inherit' }}>
+            <button onClick={toggleAll} className="btn btn-outline btn-sm">
               {selectedIds.size === results.length ? 'DESELECT ALL' : 'SELECT ALL'}
             </button>
           </div>
 
           {results.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '30px', color: 'var(--text-secondary)', fontSize: '13px' }}>No businesses found. Try different keywords or location.</div>
+            <div style={{ textAlign: 'center', padding: '30px', color: 'var(--text-muted)', fontSize: '13px' }}>No businesses found. Try different keywords or location.</div>
           )}
 
-          <div style={{ maxHeight: '360px', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: '8px', marginBottom: '14px' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <div className="table-wrapper" style={{ maxHeight: '360px', marginBottom: '14px' }}>
+            <table>
               <thead>
                 <tr>
-                  <th style={{ width: '36px', textAlign: 'center', fontSize: '10px', color: 'var(--radar-green)', letterSpacing: '2px', padding: '8px 6px', borderBottom: '2px solid var(--border)', textTransform: 'uppercase' }}></th>
-                  <th style={{ textAlign: 'left', fontSize: '10px', color: 'var(--radar-green)', letterSpacing: '2px', padding: '8px 10px', borderBottom: '2px solid var(--border)', textTransform: 'uppercase' }}>BUSINESS</th>
-                  <th style={{ textAlign: 'left', fontSize: '10px', color: 'var(--radar-green)', letterSpacing: '2px', padding: '8px 10px', borderBottom: '2px solid var(--border)', textTransform: 'uppercase', width: '110px' }}>PHONE</th>
-                  <th style={{ textAlign: 'left', fontSize: '10px', color: 'var(--radar-green)', letterSpacing: '2px', padding: '8px 10px', borderBottom: '2px solid var(--border)', textTransform: 'uppercase', width: '100px' }}>LOCATION</th>
-                  <th style={{ textAlign: 'left', fontSize: '10px', color: 'var(--radar-green)', letterSpacing: '2px', padding: '8px 10px', borderBottom: '2px solid var(--border)', textTransform: 'uppercase', width: '70px' }}>RATING</th>
+                  <th style={{ width: '36px', textAlign: 'center', fontSize: '10px', color: 'var(--success)', letterSpacing: '2px', padding: '8px 6px', borderBottom: '2px solid var(--border)', textTransform: 'uppercase' }}></th>
+                  <th style={{ textAlign: 'left', fontSize: '10px', color: 'var(--success)', letterSpacing: '2px', padding: '8px 10px', borderBottom: '2px solid var(--border)', textTransform: 'uppercase' }}>BUSINESS</th>
+                  <th style={{ textAlign: 'left', fontSize: '10px', color: 'var(--success)', letterSpacing: '2px', padding: '8px 10px', borderBottom: '2px solid var(--border)', textTransform: 'uppercase', width: '110px' }}>PHONE</th>
+                  <th style={{ textAlign: 'left', fontSize: '10px', color: 'var(--success)', letterSpacing: '2px', padding: '8px 10px', borderBottom: '2px solid var(--border)', textTransform: 'uppercase', width: '100px' }}>LOCATION</th>
+                  <th style={{ textAlign: 'left', fontSize: '10px', color: 'var(--success)', letterSpacing: '2px', padding: '8px 10px', borderBottom: '2px solid var(--border)', textTransform: 'uppercase', width: '70px' }}>RATING</th>
                 </tr>
               </thead>
               <tbody>
                 {results.map(b => (
                   <tr key={b.id} onClick={() => toggle(b.id)} style={{ cursor: 'pointer', background: selectedIds.has(b.id) ? 'rgba(0,255,136,0.06)' : 'transparent', transition: 'background 0.1s' }}>
                     <td style={{ textAlign: 'center', padding: '8px 6px', borderBottom: '1px solid rgba(30,58,95,0.5)', fontSize: '14px' }}>
-                      <span style={{ color: selectedIds.has(b.id) ? 'var(--radar-green)' : 'var(--border)', fontSize: '16px' }}>
+                      <span style={{ color: selectedIds.has(b.id) ? 'var(--success)' : 'var(--border)', fontSize: '16px' }}>
                         {selectedIds.has(b.id) ? '☑️' : '⬜'}
                       </span>
                     </td>
                     <td style={{ padding: '8px 10px', borderBottom: '1px solid rgba(30,58,95,0.5)' }}>
                       <div style={{ fontSize: '12px', color: 'var(--text-primary)', fontWeight: 600 }}>{b.name}</div>
-                      <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>{b.category}</div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{b.category}</div>
                     </td>
-                    <td style={{ padding: '8px 10px', borderBottom: '1px solid rgba(30,58,95,0.5)', fontSize: '12px', color: b.phone ? 'var(--blue-accent)' : 'var(--text-secondary)' }}>
+                    <td style={{ padding: '8px 10px', borderBottom: '1px solid rgba(30,58,95,0.5)', fontSize: '12px', color: b.phone ? 'var(--accent)' : 'var(--text-muted)' }}>
                       {b.phone || '—'}
                     </td>
-                    <td style={{ padding: '8px 10px', borderBottom: '1px solid rgba(30,58,95,0.5)', fontSize: '11px', color: 'var(--text-secondary)' }}>
+                    <td style={{ padding: '8px 10px', borderBottom: '1px solid rgba(30,58,95,0.5)', fontSize: '11px', color: 'var(--text-muted)' }}>
                       {b.city}{b.state ? `, ${b.state}` : ''}
                     </td>
                     <td style={{ padding: '8px 10px', borderBottom: '1px solid rgba(30,58,95,0.5)' }}>
                       <span style={{ fontSize: '11px', color: 'var(--amber)', fontWeight: 'bold' }}>★ {b.rating}</span>
-                      <div style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>{b.reviewCount} reviews</div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{b.reviewCount} reviews</div>
                     </td>
                   </tr>
                 ))}
@@ -621,14 +598,14 @@ function YelpSearchTab({ selected, onImported }: Props) {
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-            <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
               {selectedIds.size} business{selectedIds.size !== 1 ? 'es' : ''} selected
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={() => { setSearched(false); setResults([]); setSelectedIds(new Set()) }} style={{ padding: '6px 14px', background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-secondary)', borderRadius: '6px', fontSize: '11px', letterSpacing: '1px', cursor: 'pointer', fontFamily: 'inherit' }}>
+              <button onClick={() => { setSearched(false); setResults([]); setSelectedIds(new Set()) }} className="btn btn-outline btn-sm">
                 CLEAR
               </button>
-              <button onClick={doImport} disabled={importing || selectedIds.size === 0} style={{ padding: '6px 16px', background: selectedIds.size > 0 && !importing ? 'var(--radar-green)' : 'var(--border)', border: 'none', color: selectedIds.size > 0 && !importing ? 'var(--navy-deep)' : 'var(--text-secondary)', borderRadius: '6px', fontSize: '11px', letterSpacing: '1px', cursor: selectedIds.size > 0 && !importing ? 'pointer' : 'not-allowed', fontFamily: 'inherit', fontWeight: 'bold' }}>
+              <button onClick={doImport} disabled={importing || selectedIds.size === 0} style={{ padding: '6px 16px', background: selectedIds.size > 0 && !importing ? 'var(--success)' : 'var(--border)', border: 'none', color: selectedIds.size > 0 && !importing ? 'var(--bg-deep)' : 'var(--text-muted)', borderRadius: '6px', fontSize: '11px', letterSpacing: '1px', cursor: selectedIds.size > 0 && !importing ? 'pointer' : 'not-allowed', fontFamily: 'inherit', fontWeight: 'bold' }}>
                 {importing ? 'IMPORTING...' : `📥 IMPORT ${selectedIds.size} BUSINESS${selectedIds.size !== 1 ? 'ES' : ''}`}
               </button>
             </div>
@@ -637,7 +614,7 @@ function YelpSearchTab({ selected, onImported }: Props) {
       )}
 
       {msg && (
-        <div style={{ marginTop: '12px', padding: '14px 18px', borderRadius: '6px', background: msg.type === 'ok' ? 'rgba(0,255,136,0.1)' : 'rgba(255,68,68,0.1)', border: `1px solid var(--${msg.type === 'ok' ? 'radar-green' : 'red-alert'})`, color: msg.type === 'ok' ? 'var(--radar-green)' : 'var(--red-alert)', fontSize: '13px' }}>
+        <div className={`alert ${msg.type === 'ok' ? 'alert-success' : 'alert-danger'}`} style={{ marginTop: '12px' }}>
           {msg.text}
         </div>
       )}
